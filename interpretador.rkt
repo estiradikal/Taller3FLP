@@ -1,5 +1,6 @@
 #lang eopl
 
+
 ;; Estiven Andres Martinez Granados
 ;; 2179687-3743
 ;; Taller 3 FLP
@@ -169,9 +170,168 @@
 (valor-verdad? -3) ; Salida esperada: #t
 
 ;; --------------------------------------------------- 4 -----------------------------------
-;;
-;;
-;;
-;;
-;;
-;;
+
+(define (eval-exp exp)
+  (cond
+    [(number? exp) exp]
+    [(list? exp)
+     (case (car exp)
+       [(+) (+ (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(-) (- (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(*) (* (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(/) (/ (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(~) (string-length (eval-exp (cadr exp)))]
+       [(condicional-exp)
+        (if (eval-exp (cadr exp))
+            (eval-exp (caddr exp))
+            (eval-exp (cadddr exp)))]
+       [else "Expresión no válida"])] ; Devuelve la cadena directamente
+    [else "Expresión no válida"])) ; Devuelve la cadena directamente
+
+
+
+(define example1 '(condicional-exp (+ 2 3) 2 3))
+(define example2 '(condicional-exp (string=? (number->string (eval-exp '(+ 2 3))) "4") 2 3))
+
+(define result1 (eval-exp example1))
+(define result2 (eval-exp example2))
+
+result1
+result2
+
+;; --------------------------------------------------- 5 -----------------------------------
+
+(define (evaal-exp exp)
+  (cond
+    [(number? exp) exp]
+    [(symbol? exp) (lookup-variable-value exp)]
+    [(list? exp)
+     (case (car exp)
+       [(+) (+ (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(-) (- (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(*) (* (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(/) (/ (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(~) (string-length (eval-exp (cadr exp)))]
+       [(variableLocal-exp)
+        (let ((bindings (cadr exp))
+              (body (caddr exp)))
+          (eval-body body bindings))]
+       [else ("Expresión no válida")])]
+    [else ("Expresión no válida")]))
+
+
+(define variable-table '())
+
+(define (lookup-variable-value id)
+  (cdr (assoc id variable-table)))
+
+(define (eval-body body bindings)
+  (let ((old-table variable-table))
+    (set! variable-table (extend-variable-table bindings))
+    (let ((result (eval-exp body)))
+      (set! variable-table old-table)
+      result)))
+
+(define (extend-variable-table bindings)
+  (append bindings variable-table))
+
+
+(define example '(variableLocal-exp ((@x 2) (@y 3) (@a 7)) ((+ (@a) (@b)))))
+
+(define result (eval-exp example))
+
+result
+
+;; --------------------------------------------------- 6 -----------------------------------
+
+(define-datatype procVal procVal?
+  (cerradura
+   (lista-ID (list-of symbol?))
+   ;;(exp eexpresion)
+   ;;(amb ambiente?)
+   ))
+
+(define (evaaal-exp exp)
+  (cond
+    [(number? exp) exp]
+    [(symbol? exp) (lookup-variable-value exp)]
+    [(list? exp)
+     (case (car exp)
+       [(+) (+ (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(-) (- (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(*) (* (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(/) (/ (eval-exp (cadr exp)) (eval-exp (caddr exp)))]
+       [(~) (string-length (eval-exp (cadr exp)))]
+       [(procedimiento-ex)
+        (make-cerradura (cadr exp) (caddr exp) variablee-table)]
+       [else ("Expresión no válida")])]
+    [else ("Expresión no válida")]))
+
+
+(define variablee-table '())
+
+(define (lookup-variablee-value id)
+  (cdr (assoc id variablee-table)))
+
+(define (evaal-body body)
+  (let ((old-table variable-table))
+    (set! variable-table (extend-variable-table body))
+    (let ((result (eval-exp (cadr body))))
+      (set! variable-table old-table)
+      result)))
+
+(require racket/list)
+
+;;(define (extend-variablee-table ids)
+  ;;(for/list ([id ids])
+    ;;(cons id (lookup-variable-value id)))
+
+
+(define examplee '(procedimiento-ex (@x @y @z) haga ((+ (+ (@x) (@y)) (@z))) ))
+
+(define reesult (eval-exp example))
+
+result
+
+;; -------------------------------------------   --------------------------------
+
+(define (areaCirculo radio)
+  (* 3.14159 radio radio))
+
+(define @radio 2.5)
+(define @areaCirculo (lambda (radio) (areaCirculo radio)))
+
+(@areaCirculo @radio)
+
+;;----
+
+(define (factorial n)
+  (if (= n 0)
+      1
+      (* n (factorial (- n 1)))))
+
+"Factorial de 5: "
+(factorial 5)
+
+
+"Factorial de 10: "
+(factorial 10)
+
+
+;; ----------------
+
+(define (restar a b)
+  (if (= b 0)
+      a
+      (restar (sub1 a) (sub1 b))))
+
+(define (multiplicar a b)
+  (if (= b 0)
+      0
+      (restar (multiplicar a (sub1 b)) a)))
+
+"Resta de 10 y 3: "
+(restar 10 3)
+
+"Multiplicación de 10 y 3: "
+(multiplicar 10 3)
