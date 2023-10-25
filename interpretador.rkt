@@ -1,6 +1,5 @@
 #lang eopl
 
-
 ;; Estiven Andres Martinez Granados
 ;; 2179687-3743
 ;; Taller 3 FLP
@@ -335,3 +334,19 @@ result
 
 "Multiplicación de 10 y 3: "
 (multiplicar 10 3)
+
+;;---
+
+(define (@integrantes)
+  "Robinson-y-Sara")
+
+(define (@saludar mensaje funcion)
+  (lambda ()
+    (string-append "Hola:" (funcion) mensaje)))
+
+(define (@decorate mensajeAdicional)
+  (let ((mensajeDecorador (string-append "-ProfesoresFLP" mensajeAdicional)))
+    (@saludar mensajeDecorador @integrantes)))
+
+(@decorate "-OtroMensajeAdicional")
+
